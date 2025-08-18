@@ -3,6 +3,10 @@ package main.java.sandboxbot;
 import javax.swing.*;
 import java.awt.*;
 
+import main.java.sandboxbot.BotCore;
+import main.java.sandboxbot.World;
+import main.java.sandboxbot.Visualizer;
+
 public class ClientFrame extends JFrame {
     private SaveManager saveManager;
     private SettingsManager settingsManager;
@@ -33,6 +37,13 @@ public class ClientFrame extends JFrame {
         menuBar.add(fileMenu);
         menuBar.add(settingsMenu);
         setJMenuBar(menuBar);
+    }
+
+    public ClientFrame(BotCore bot, World world, int cellSize, int fps) {
+        this();
+        Visualizer viz = new Visualizer(world, cellSize);
+        add(viz, BorderLayout.CENTER);
+        new Timer(1000 / fps, e -> viz.repaint()).start();
     }
 
     public ToastManager getToastManager() {

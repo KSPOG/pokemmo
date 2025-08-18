@@ -1,15 +1,19 @@
-package main.java.main.java.sandboxbot;
+package main.java.sandboxbot;
 
 import main.java.sandboxbot.plugins.RandomWalker;
 import javax.swing.*;
 
 public class MainSwing {
     public static void main(String[] args) {
-        main.java.sandboxbot.World world = new main.java.sandboxbot.World(18, 12);
+        World world = new World(18, 12);
 
-        main.java.sandboxbot.BotCore bot = new main.java.sandboxbot.BotCore(15, world);
+        BotCore bot = new BotCore(15, world);
         bot.register(new RandomWalker(), true);
+        new Thread(bot::start).start();
 
-        SwingUtilities.invokeLater(() -> new ClientFrame(bot, world, 40, 30));
+        SwingUtilities.invokeLater(() -> {
+            ClientFrame frame = new ClientFrame(bot, world, 40, 30);
+            frame.setVisible(true);
+        });
     }
 }

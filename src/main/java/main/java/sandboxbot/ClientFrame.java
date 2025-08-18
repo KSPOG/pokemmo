@@ -11,6 +11,7 @@ public class ClientFrame extends JFrame {
     private SaveManager saveManager;
     private SettingsManager settingsManager;
     private ToastManager toastManager;
+    private JPanel pluginContainer;
 
     public ClientFrame() {
         super("SandboxBot Client");
@@ -41,9 +42,26 @@ public class ClientFrame extends JFrame {
 
     public ClientFrame(BotCore bot, World world, int cellSize, int fps) {
         this();
+        initPlugins(bot);
         Visualizer viz = new Visualizer(world, cellSize);
         add(viz, BorderLayout.CENTER);
         new Timer(1000 / fps, e -> viz.repaint()).start();
+    }
+
+    private void initPlugins(BotCore bot) {
+        pluginContainer = new JPanel(new BorderLayout());
+        PluginPanel panel = new PluginPanel(bot);
+        JScrollPane scroll = new JScrollPane(panel);
+        JButton collapse = new JButton("Hide Plugins");
+        collapse.addActionListener(e -> {
+            boolean visible = scroll.isVisible();
+            scroll.setVisible(!visible);
+            collapse.setText(visible ? "Show Plugins" : "Hide Plugins");
+            revalidate();
+        });
+        pluginContainer.add(collapse, BorderLayout.NORTH);
+        pluginContainer.add(scroll, BorderLayout.CENTER);
+        add(pluginContainer, BorderLayout.WEST);
     }
 
     public ToastManager getToastManager() {

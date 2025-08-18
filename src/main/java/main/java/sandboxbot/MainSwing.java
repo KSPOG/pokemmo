@@ -1,7 +1,8 @@
-package main.java.main.java.sandboxbot;
+package main.java.sandboxbot;
 
 import main.java.sandboxbot.plugins.RandomWalker;
 import javax.swing.*;
+import main.java.sandboxbot.ClientFrame;
 
 public class MainSwing {
     public static void main(String[] args) {
@@ -10,6 +11,9 @@ public class MainSwing {
         main.java.sandboxbot.BotCore bot = new main.java.sandboxbot.BotCore(15, world);
         bot.register(new RandomWalker(), true);
 
-        SwingUtilities.invokeLater(() -> new ClientFrame(bot, world, 40, 30));
+        SwingUtilities.invokeLater(() -> {
+            ClientFrame frame = new ClientFrame();
+            frame.setVisible(true);
+        });
     }
 }

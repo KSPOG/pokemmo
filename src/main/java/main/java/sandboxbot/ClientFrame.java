@@ -3,10 +3,6 @@ package main.java.sandboxbot;
 import javax.swing.*;
 import java.awt.*;
 
-import main.java.sandboxbot.BotCore;
-import main.java.sandboxbot.World;
-import main.java.sandboxbot.Visualizer;
-
 public class ClientFrame extends JFrame {
     private SaveManager saveManager;
     private SettingsManager settingsManager;

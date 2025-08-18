@@ -4,6 +4,7 @@ import main.java.sandboxbot.plugins.RandomWalker;
 import javax.swing.*;
 import java.awt.*;
 import main.java.sandboxbot.Visualizer;
+
 import main.java.sandboxbot.ClientFrame;
 
 public class MainSwing {

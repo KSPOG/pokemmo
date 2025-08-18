@@ -1,7 +1,8 @@
-package main.java.main.java.sandboxbot;
+package main.java.sandboxbot;
 
 import main.java.sandboxbot.plugins.RandomWalker;
 import javax.swing.*;
+import main.java.sandboxbot.ClientFrame;
 
 public class MainSwing {
     public static void main(String[] args) {

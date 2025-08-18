@@ -1,4 +1,4 @@
-package main.java.main.java.sandboxbot;
+package main.java.sandboxbot;
 
 import javax.swing.*;
 import java.awt.*;

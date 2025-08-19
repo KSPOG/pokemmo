@@ -24,6 +24,15 @@ public class ClientLauncher {
         return new String[0];
     }
 
+    private static JPanel buildPluginPanel() {
+        JPanel pluginPanel = new JPanel(new BorderLayout());
+        pluginPanel.setBorder(BorderFactory.createTitledBorder("Plugins"));
+        JList<String> pluginList = new JList<>(listPlugins());
+        pluginPanel.add(new JScrollPane(pluginList), BorderLayout.CENTER);
+        return pluginPanel;
+    }
+
+
     private static void launchPokemmo() {
         String java = resolveJavaCmd();
         File classPath = new File(BASE_DIR, "PokeMMO.exe");
@@ -43,10 +52,47 @@ public class ClientLauncher {
         }
     }
 
+    private static void openGameWindow() {
+        JFrame gameFrame = new JFrame("PokeMMO");
+        gameFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        gameFrame.setLayout(new BorderLayout());
+
+        JPanel pluginPanel = buildPluginPanel();
+        JPanel gamePanel = new JPanel(new BorderLayout());
+        gamePanel.setBorder(BorderFactory.createTitledBorder("Game"));
+        gamePanel.add(new JLabel("PokeMMO running...", SwingConstants.CENTER), BorderLayout.CENTER);
+
+        JButton toggleBtn = new JButton("Hide Plugins");
+        toggleBtn.addActionListener(e -> {
+            boolean visible = pluginPanel.isVisible();
+            pluginPanel.setVisible(!visible);
+            toggleBtn.setText(visible ? "Show Plugins" : "Hide Plugins");
+            gameFrame.revalidate();
+        });
+
+        gameFrame.add(pluginPanel, BorderLayout.WEST);
+        gameFrame.add(gamePanel, BorderLayout.CENTER);
+        gameFrame.add(toggleBtn, BorderLayout.SOUTH);
+
+        gameFrame.setSize(800, 600);
+        gameFrame.setLocationRelativeTo(null);
+        gameFrame.setVisible(true);
+
+        launchPokemmo();
+    }
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("PokeMMO Launcher");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+            JButton launchBtn = new JButton("Launch PokeMMO");
+            launchBtn.addActionListener(e -> {
+                frame.dispose();
+                openGameWindow();
+            });
+            frame.add(launchBtn);
+
             frame.setLayout(new BorderLayout());
 
             JPanel pluginPanel = new JPanel(new BorderLayout());

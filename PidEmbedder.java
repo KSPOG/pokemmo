@@ -62,7 +62,9 @@ public final class PidEmbedder {
 
     private static String queryWindowId(String title) {
         try {
-            Process p = new ProcessBuilder("xdotool", "search", "--onlyvisible", "--name", title).start();
+            // Do not restrict search to visible windows; the client may start hidden
+            // and become visible only after reparenting. Query all windows by name.
+            Process p = new ProcessBuilder("xdotool", "search", "--name", title).start();
             BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String id = br.readLine();
             p.waitFor();

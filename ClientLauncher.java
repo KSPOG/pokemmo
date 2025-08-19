@@ -28,6 +28,7 @@ import plugins.Plugin;
 public class ClientLauncher {
     private static final File BASE_DIR = new File(System.getProperty("user.dir"));
     private static final Logger LOGGER = Logger.getLogger(ClientLauncher.class.getName());
+    private static final String CLIENT_WINDOW_TITLE = "PokeMMO";
     private static JTextArea logArea;
 
     static {
@@ -151,9 +152,12 @@ public class ClientLauncher {
                                 Thread.sleep(2000);
                             } catch (InterruptedException ignored) {
                             }
+                            PidEmbedder.reparent(CLIENT_WINDOW_TITLE, hostFrame);
+
                             PidEmbedder.reparent("PokeMMO", hostFrame);
 
                             PidEmbedder.reparent(pid, hostFrame);
+
 
                         }
                     }).start();

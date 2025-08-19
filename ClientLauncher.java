@@ -32,6 +32,7 @@ public class ClientLauncher {
         return pluginPanel;
     }
 
+
     private static void launchPokemmo() {
         String java = resolveJavaCmd();
         File classPath = new File(BASE_DIR, "PokeMMO.exe");
@@ -92,6 +93,29 @@ public class ClientLauncher {
             });
             frame.add(launchBtn);
 
+            frame.setLayout(new BorderLayout());
+
+            JPanel pluginPanel = new JPanel(new BorderLayout());
+            pluginPanel.setBorder(BorderFactory.createTitledBorder("Plugins"));
+            JList<String> pluginList = new JList<>(listPlugins());
+            pluginPanel.add(new JScrollPane(pluginList), BorderLayout.CENTER);
+
+            JPanel mainPanel = new JPanel();
+            JButton launchBtn = new JButton("Launch PokeMMO");
+            launchBtn.addActionListener(e -> launchPokemmo());
+            mainPanel.add(launchBtn);
+
+            JButton toggleBtn = new JButton("Hide Plugins");
+            toggleBtn.addActionListener(e -> {
+                boolean visible = pluginPanel.isVisible();
+                pluginPanel.setVisible(!visible);
+                toggleBtn.setText(visible ? "Show Plugins" : "Hide Plugins");
+                frame.revalidate();
+            });
+            mainPanel.add(toggleBtn);
+
+            frame.add(pluginPanel, BorderLayout.WEST);
+            frame.add(mainPanel, BorderLayout.CENTER);
             frame.pack();
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);

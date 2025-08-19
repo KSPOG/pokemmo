@@ -86,6 +86,13 @@ public class ClientLauncher {
             JFrame frame = new JFrame("PokeMMO Launcher");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+            JButton launchButton = new JButton("Launch PokeMMO");
+            launchButton.addActionListener(e -> {
+                frame.dispose();
+                openGameWindow();
+            });
+            frame.add(launchButton);
+
             JButton launchBtn = new JButton("Launch PokeMMO");
             launchBtn.addActionListener(e -> {
                 frame.dispose();

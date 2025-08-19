@@ -23,6 +23,8 @@ import java.util.jar.Manifest;
 import java.lang.reflect.Method;
 
 public class Client {
+
+    private static final Logger logger = createLogger();
     private final Logger logger;
     private final List<ClientPlugin> plugins = new ArrayList<ClientPlugin>();
     private final File gamePath;
@@ -30,6 +32,12 @@ public class Client {
     private File injectedJar;
 
     public Client(File gamePath) {
+
+        this.gamePath = gamePath != null ? gamePath : defaultGamePath();
+    }
+
+    private static Logger createLogger() {
+
     private final List<ClientPlugin> plugins = new ArrayList<>();
     private final List<Object> plugins = new ArrayList<>();
     private final Path gamePath;
@@ -42,6 +50,7 @@ public class Client {
     }
 
     private Logger createLogger() {
+
         Logger log = Logger.getLogger("pokemmo.client");
         log.setUseParentHandlers(false);
         if (log.getHandlers().length == 0) {
@@ -61,6 +70,15 @@ public class Client {
             return winExe;
         }
         return new File(root, "PokeMMO.sh");
+    }
+
+    public static Logger getLogger() {
+        return logger;
+    }
+
+    public void loadPlugins(File directory) {
+        File dir = directory != null ? directory : new File("plugins");
+        if (!dir.exists()) {
 
     private Path defaultGamePath() {
         Path root = Paths.get("").toAbsolutePath();
@@ -83,6 +101,7 @@ public class Client {
         Path dir = directory != null ? directory : Paths.get("plugins");
         if (!Files.exists(dir)) {
 
+
             logger.fine("Plugin directory " + dir + " does not exist");
             return;
         }
@@ -91,6 +110,7 @@ public class Client {
             try {
                 loader = new URLClassLoader(new URL[]{dir.toURI().toURL()});
             } catch (MalformedURLException e) {
+
 
                 loader = new URLClassLoader(new URL[]{dir.toUri().toURL()});
             } catch (IOException e) {
@@ -134,6 +154,7 @@ public class Client {
 
     public void prepareInjection(File pluginDir) {
         File jar = findGameJar();
+
         try (Stream<Path> stream = Files.walk(dir)) {
             stream.filter(p -> p.toString().endsWith(".class")).forEach(entry -> {
                 String className = dir.relativize(entry).toString()
@@ -192,6 +213,7 @@ public class Client {
     public void prepareInjection(Path pluginDir) {
         Path jar = findGameJar();
 
+
         if (jar == null) {
             logger.fine("No injectable game jar found, using external launch");
             return;
@@ -206,6 +228,7 @@ public class Client {
             injectionLoader = new URLClassLoader(urls.toArray(new URL[urls.size()]), ClassLoader.getSystemClassLoader());
             injectedJar = jar;
         } catch (MalformedURLException e) {
+
         List<URL> urls = new ArrayList<>();
         try {
             urls.add(jar.toUri().toURL());
@@ -216,6 +239,7 @@ public class Client {
             injectionLoader = new URLClassLoader(urls.toArray(new URL[0]), ClassLoader.getSystemClassLoader());
             injectedJar = jar;
         } catch (IOException e) {
+
             logger.log(Level.WARNING, "Failed to setup injection", e);
         }
     }
@@ -226,6 +250,7 @@ public class Client {
         File jar = searchJar(base);
         if (jar == null) {
             jar = searchJar(new File(base, "lib"));
+
 
     private Path findGameJar() {
         Path base = gamePath.getParent();
@@ -251,6 +276,7 @@ public class Client {
                 return p;
             }
 
+
     private Path searchJar(Path dir) {
         if (dir == null || !Files.isDirectory(dir)) {
             return null;
@@ -263,6 +289,7 @@ public class Client {
             }
         } catch (IOException e) {
             logger.log(Level.FINE, "Error searching jars in " + dir, e);
+
         }
         return null;
     }
@@ -272,6 +299,8 @@ public class Client {
             try {
                 logger.info("Injecting into PokeMMO from " + injectedJar);
                 Thread.currentThread().setContextClassLoader(injectionLoader);
+                JarFile jar = new JarFile(injectedJar);
+                try {
 
                 JarFile jar = new JarFile(injectedJar);
                 try {
@@ -285,12 +314,16 @@ public class Client {
                     }
                     Class<?> cls = Class.forName(mainClass, true, injectionLoader);
                     Method main = cls.getMethod("main", String[].class);
+                    main.invoke(null, new Object[]{new String[0]});
+                } finally {
+                    jar.close();
 
                     main.invoke(null, new Object[]{new String[0]});
                 } finally {
                     jar.close();
 
                     main.invoke(null, (Object) new String[0]);
+
 
                 }
                 return;
@@ -306,12 +339,14 @@ public class Client {
             pb = new ProcessBuilder(new String[]{gamePath.getAbsolutePath()});
         }
         pb.directory(gamePath.getParentFile());
+
         if (gamePath.toString().endsWith(".sh")) {
             pb = new ProcessBuilder("bash", gamePath.toString());
         } else {
             pb = new ProcessBuilder(gamePath.toString());
         }
         pb.directory(gamePath.getParent().toFile());
+
         pb.start();
     }
 
@@ -322,6 +357,9 @@ public class Client {
         for (ClientPlugin plugin : client.plugins) {
             try {
                 plugin.run(client);
+            } catch (Exception e) {
+                Client.getLogger().log(Level.WARNING, "Error running plugin", e);
+
         for (Object plugin : client.plugins) {
             try {
                 plugin.getClass().getMethod("run", Client.class).invoke(plugin, client);
@@ -329,6 +367,7 @@ public class Client {
                 // plugin doesn't have run(Client)
             } catch (Exception e) {
                 client.logger.log(Level.WARNING, "Error running plugin", e);
+
             }
         }
         client.run();

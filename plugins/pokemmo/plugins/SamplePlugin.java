@@ -11,5 +11,7 @@ public class SamplePlugin implements ClientPlugin {
     public void run(Client client) {
         // Log through the client's global logger to verify plugin execution
         Client.getLogger().info("SamplePlugin executed");
+
+
     }
 }

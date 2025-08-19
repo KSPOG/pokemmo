@@ -67,11 +67,15 @@ public final class PidEmbedder {
      *
      * @param pid  process id of the game client
      * @param host host frame to embed the game window into
+
      */
-    public static void reparent(long pid, JFrame host) {
+    public static void reparent(String windowName, JFrame host) {
         String os = System.getProperty("os.name").toLowerCase();
         if (!os.contains("linux")) {
             LOGGER.warning("PID-based embedding is only supported on Linux with xdotool");
+
+            LOGGER.warning("Window embedding is only supported on Linux with xdotool");
+
             return;
         }
 
@@ -83,17 +87,29 @@ public final class PidEmbedder {
             }
 
             String childId = queryWindowIdByPid(pid);
+
+            String childId = queryWindowId("^" + windowName + "$");
+
             if (childId == null || childId.isEmpty()) {
-                LOGGER.warning("No window found for pid " + pid);
+                LOGGER.warning("No window found matching title " + windowName);
                 return;
             }
 
             new ProcessBuilder("xdotool", "windowreparent", childId.trim(), hostId.trim()).start().waitFor();
+
             new ProcessBuilder("xdotool", "windowmap", childId.trim()).start().waitFor();
             new ProcessBuilder("xdotool", "windowraise", childId.trim()).start().waitFor();
             LOGGER.info("Reparented game window " + childId.trim() + " into launcher via pid");
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Failed to embed window by pid", e);
+
+            // Ensure the window becomes visible immediately after reparenting.
+            new ProcessBuilder("xdotool", "windowmap", childId.trim()).start().waitFor();
+            new ProcessBuilder("xdotool", "windowraise", childId.trim()).start().waitFor();
+            LOGGER.info("Reparented game window " + childId.trim() + " into launcher and mapped");
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Failed to embed window by name", e);
+
         }
     }
 

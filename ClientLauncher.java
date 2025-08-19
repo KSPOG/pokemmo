@@ -28,6 +28,7 @@ import plugins.Plugin;
 public class ClientLauncher {
     private static final File BASE_DIR = new File(System.getProperty("user.dir"));
     private static final Logger LOGGER = Logger.getLogger(ClientLauncher.class.getName());
+    private static final String CLIENT_WINDOW_TITLE = "PokeMMO";
     private static JTextArea logArea;
 
     static {
@@ -145,7 +146,16 @@ public class ClientLauncher {
                     Process proc = pb.start();
                     // Log the process ID explicitly as a string to avoid any type ambiguity.
                     LOGGER.info("Started PokeMMO with pid " + String.valueOf(proc.pid()));
+
                     final long pid = proc.pid();
+
+
+
+                    LOGGER.info("Started PokeMMO with pid " + proc.pid());
+
+                    long pid = proc.pid();
+                    LOGGER.info("Started PokeMMO with pid " + pid);
+
 
                     // Attempt to embed the client window without blocking its startup.
                     // Running the embedder asynchronously prevents the launcher from
@@ -159,6 +169,20 @@ public class ClientLauncher {
                             }
                             // Embed the client by its process id
                             PidEmbedder.reparent(pid, hostFrame);
+
+                            // Embed the client by its window title rather than PID
+                            PidEmbedder.reparent(CLIENT_WINDOW_TITLE, hostFrame);
+
+                          
+                            // Embed the client by its window title rather than PID
+                            PidEmbedder.reparent(CLIENT_WINDOW_TITLE, hostFrame);
+                            PidEmbedder.reparent(CLIENT_WINDOW_TITLE, hostFrame);
+
+
+                            PidEmbedder.reparent("PokeMMO", hostFrame);
+
+                            PidEmbedder.reparent(pid, hostFrame);
+
                         }
                     }).start();
 

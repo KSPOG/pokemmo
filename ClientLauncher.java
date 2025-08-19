@@ -147,6 +147,9 @@ public class ClientLauncher {
                     // Log the process ID explicitly as a string to avoid any type ambiguity.
                     LOGGER.info("Started PokeMMO with pid " + String.valueOf(proc.pid()));
 
+                    final long pid = proc.pid();
+
+
 
                     LOGGER.info("Started PokeMMO with pid " + proc.pid());
 
@@ -164,6 +167,9 @@ public class ClientLauncher {
                                 Thread.sleep(2000);
                             } catch (InterruptedException ignored) {
                             }
+                            // Embed the client by its process id
+                            PidEmbedder.reparent(pid, hostFrame);
+
                             // Embed the client by its window title rather than PID
                             PidEmbedder.reparent(CLIENT_WINDOW_TITLE, hostFrame);
 

@@ -13,6 +13,7 @@ import java.lang.reflect.Method;
 public class Client {
     private final Logger logger;
     private final List<ClientPlugin> plugins = new ArrayList<>();
+    private final List<Object> plugins = new ArrayList<>();
     private final Path gamePath;
     private URLClassLoader injectionLoader;
     private Path injectedJar;
@@ -74,6 +75,18 @@ public class Client {
                         logger.log(Level.WARNING, "Failed to load plugin " + className, e);
                     }
                 });
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, "*.class")) {
+                for (Path entry : stream) {
+                    String className = entry.getFileName().toString().replaceFirst("\\.class$", "");
+                    try {
+                        Class<?> cls = Class.forName(className, true, loader);
+                        Object plugin = cls.getDeclaredConstructor().newInstance();
+                        plugins.add(plugin);
+                        logger.info("Loaded plugin " + className);
+                    } catch (Exception e) {
+                        logger.log(Level.WARNING, "Failed to load plugin " + className, e);
+                    }
+                }
             }
         } catch (IOException e) {
             logger.log(Level.WARNING, "Error reading plugin directory", e);
@@ -163,6 +176,11 @@ public class Client {
         for (ClientPlugin plugin : client.plugins) {
             try {
                 plugin.run(client);
+        for (Object plugin : client.plugins) {
+            try {
+                plugin.getClass().getMethod("run", Client.class).invoke(plugin, client);
+            } catch (NoSuchMethodException e) {
+                // plugin doesn't have run(Client)
             } catch (Exception e) {
                 client.logger.log(Level.WARNING, "Error running plugin", e);
             }

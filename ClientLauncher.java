@@ -1,3 +1,30 @@
+
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.ServiceLoader;
+import java.util.logging.FileHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
+
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
+
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
@@ -10,6 +37,7 @@ import java.util.List;
 import java.util.ServiceLoader;
 import java.util.Comparator;
 import java.util.logging.*;
+
 import plugins.Plugin;
 
 public class ClientLauncher {
@@ -61,8 +89,10 @@ public class ClientLauncher {
 
 
 
+
                         p.start();
                     } else {
+
 
 
 
@@ -74,6 +104,7 @@ public class ClientLauncher {
         }
         return pluginPanel;
     }
+
 
 
 
@@ -126,6 +157,7 @@ public class ClientLauncher {
 
 
 
+
     private static JFrame buildLauncherFrame() {
         final JFrame frame = new JFrame("PokeMMO Launcher");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -134,6 +166,7 @@ public class ClientLauncher {
         LOGGER.info("Loaded " + plugins.size() + " plugins");
         final JPanel pluginPanel = buildPluginPanel(plugins);
         final JButton toggleBtn = new JButton("Hide Plugins");
+
 
 
         final JPanel pluginPanel = buildPluginPanel(plugins);
@@ -155,6 +188,9 @@ public class ClientLauncher {
                 boolean visible = pluginPanel.isVisible();
                 pluginPanel.setVisible(!visible);
                 toggleBtn.setText(visible ? "Show Plugins" : "Hide Plugins");
+
+                LOGGER.info("Plugin panel " + (visible ? "hidden" : "shown"));
+
 
                 LOGGER.info("Plugin panel " + (visible ? "hidden" : "shown"));
 
@@ -195,6 +231,7 @@ public class ClientLauncher {
 
 
 
+
         frame.setSize(800, 600);
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
@@ -229,6 +266,7 @@ public class ClientLauncher {
                 }
             }
         }).start();
+
                 try (URLClassLoader cl = new URLClassLoader(new URL[]{
                         new File(BASE_DIR, "PokeMMO.exe").toURI().toURL()
                 })) {
@@ -409,6 +447,7 @@ public class ClientLauncher {
         });
         timer.start();
 
+
     }
 
     public static void main(String[] args) {
@@ -449,6 +488,7 @@ public class ClientLauncher {
         @Override
         public void close() {
         }
+
 
 
 
@@ -534,6 +574,7 @@ public class ClientLauncher {
             frame.setVisible(true);
 
         });
+
 
     }
 }

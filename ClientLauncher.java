@@ -8,6 +8,49 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.ServiceLoader;
+import java.util.Comparator;
+import plugins.Plugin;
+
+public class ClientLauncher {
+    private static final File BASE_DIR = new File(System.getProperty("user.dir"));
+
+    private static List<Plugin> loadPlugins() {
+        ServiceLoader<Plugin> loader = ServiceLoader.load(Plugin.class);
+        List<Plugin> plugins = new ArrayList<Plugin>();
+        for (Plugin p : loader) {
+            plugins.add(p);
+        }
+        Collections.sort(plugins, new Comparator<Plugin>() {
+            @Override
+            public int compare(Plugin a, Plugin b) {
+                return a.getName().compareToIgnoreCase(b.getName());
+            }
+        });
+        return plugins;
+    }
+
+    private static JPanel buildPluginPanel(List<Plugin> plugins) {
+        JPanel pluginPanel = new JPanel();
+        pluginPanel.setLayout(new BoxLayout(pluginPanel, BoxLayout.Y_AXIS));
+        pluginPanel.setBorder(BorderFactory.createTitledBorder("Plugins"));
+        for (Plugin plugin : plugins) {
+            final Plugin p = plugin;
+            final JCheckBox toggle = new JCheckBox(p.getName());
+            toggle.addActionListener(new java.awt.event.ActionListener() {
+                @Override
+                public void actionPerformed(java.awt.event.ActionEvent e) {
+                    if (toggle.isSelected()) {
+                        p.start();
+                    } else {
+                        p.stop();
+                    }
+                }
+            });
+            pluginPanel.add(toggle);
+        }
+        return pluginPanel;
+    }
+
 import plugins.Plugin;
 
 
@@ -58,6 +101,9 @@ public class ClientLauncher {
         final JFrame frame = new JFrame("PokeMMO Launcher");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+        final List<Plugin> plugins = loadPlugins();
+        final JPanel pluginPanel = buildPluginPanel(plugins);
+        final JButton toggleBtn = new JButton("Hide Plugins");
         final JPanel pluginPanel = buildPluginPanel();
         final JButton toggleBtn = new JButton("Hide Plugins");
 
@@ -73,7 +119,6 @@ public class ClientLauncher {
                 boolean visible = pluginPanel.isVisible();
                 pluginPanel.setVisible(!visible);
                 toggleBtn.setText(visible ? "Show Plugins" : "Hide Plugins");
-
                 frame.revalidate();
                 frame.repaint();
             }

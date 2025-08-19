@@ -4,10 +4,16 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.io.IOException;
 import java.util.Arrays;
 
 public class ClientLauncher {
     private static final File BASE_DIR = new File(System.getProperty("user.dir"));
+
+    private static String resolveJavaCmd() {
+        File bundled = new File(BASE_DIR, "jre/bin/java");
+        return bundled.exists() ? bundled.getPath() : "java";
+    }
 
     private static String[] listPlugins() {
         File dir = new File(BASE_DIR, "plugins");
@@ -31,6 +37,36 @@ public class ClientLauncher {
 
     private static void attachPlugins(JFrame gameFrame) {
         JPanel pluginPanel = buildPluginPanel();
+
+    private static void launchPokemmo() {
+        String java = resolveJavaCmd();
+        File classPath = new File(BASE_DIR, "PokeMMO.exe");
+        ProcessBuilder pb = new ProcessBuilder(
+                java,
+                "-Xmx384M",
+                "-Dfile.encoding=UTF-8",
+                "-cp",
+                classPath.getPath(),
+                "com.pokeemu.client.Client"
+        );
+        pb.directory(BASE_DIR);
+        try {
+            pb.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void openGameWindow() {
+        JFrame gameFrame = new JFrame("PokeMMO");
+        gameFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        gameFrame.setLayout(new BorderLayout());
+
+        JPanel pluginPanel = buildPluginPanel();
+        JPanel gamePanel = new JPanel(new BorderLayout());
+        gamePanel.setBorder(BorderFactory.createTitledBorder("Game"));
+        gamePanel.add(new JLabel("PokeMMO running...", SwingConstants.CENTER), BorderLayout.CENTER);
+
         JButton toggleBtn = new JButton("Hide Plugins");
         toggleBtn.addActionListener(e -> {
             boolean visible = pluginPanel.isVisible();
@@ -69,6 +105,18 @@ public class ClientLauncher {
             }
         });
         timer.start();
+            gameFrame.revalidate();
+        });
+
+        gameFrame.add(pluginPanel, BorderLayout.WEST);
+        gameFrame.add(gamePanel, BorderLayout.CENTER);
+        gameFrame.add(toggleBtn, BorderLayout.SOUTH);
+
+        gameFrame.setSize(800, 600);
+        gameFrame.setLocationRelativeTo(null);
+        gameFrame.setVisible(true);
+
+        launchPokemmo();
     }
 
     public static void main(String[] args) {
@@ -83,6 +131,40 @@ public class ClientLauncher {
             });
             frame.add(launchButton);
 
+                openGameWindow();
+            });
+            frame.add(launchButton);
+
+            JButton launchBtn = new JButton("Launch PokeMMO");
+            launchBtn.addActionListener(e -> {
+                frame.dispose();
+                openGameWindow();
+            });
+            frame.add(launchBtn);
+
+            frame.setLayout(new BorderLayout());
+
+            JPanel pluginPanel = new JPanel(new BorderLayout());
+            pluginPanel.setBorder(BorderFactory.createTitledBorder("Plugins"));
+            JList<String> pluginList = new JList<>(listPlugins());
+            pluginPanel.add(new JScrollPane(pluginList), BorderLayout.CENTER);
+
+            JPanel mainPanel = new JPanel();
+            JButton launchBtn = new JButton("Launch PokeMMO");
+            launchBtn.addActionListener(e -> launchPokemmo());
+            mainPanel.add(launchBtn);
+
+            JButton toggleBtn = new JButton("Hide Plugins");
+            toggleBtn.addActionListener(e -> {
+                boolean visible = pluginPanel.isVisible();
+                pluginPanel.setVisible(!visible);
+                toggleBtn.setText(visible ? "Show Plugins" : "Hide Plugins");
+                frame.revalidate();
+            });
+            mainPanel.add(toggleBtn);
+
+            frame.add(pluginPanel, BorderLayout.WEST);
+            frame.add(mainPanel, BorderLayout.CENTER);
             frame.pack();
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);

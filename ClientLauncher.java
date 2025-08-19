@@ -28,7 +28,6 @@ public class ClientLauncher {
         }
     }
 
-
     private static List<Plugin> loadPlugins() {
         ServiceLoader<Plugin> loader = ServiceLoader.load(Plugin.class);
         List<Plugin> plugins = new ArrayList<Plugin>();
@@ -61,8 +60,10 @@ public class ClientLauncher {
                         LOGGER.info("Stopping plugin: " + p.getName());
 
 
+
                         p.start();
                     } else {
+
 
 
                         p.stop();
@@ -73,6 +74,7 @@ public class ClientLauncher {
         }
         return pluginPanel;
     }
+
 
 
 
@@ -123,6 +125,7 @@ public class ClientLauncher {
 
 
 
+
     private static JFrame buildLauncherFrame() {
         final JFrame frame = new JFrame("PokeMMO Launcher");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -131,6 +134,7 @@ public class ClientLauncher {
         LOGGER.info("Loaded " + plugins.size() + " plugins");
         final JPanel pluginPanel = buildPluginPanel(plugins);
         final JButton toggleBtn = new JButton("Hide Plugins");
+
 
         final JPanel pluginPanel = buildPluginPanel(plugins);
         final JButton toggleBtn = new JButton("Hide Plugins");
@@ -158,10 +162,15 @@ public class ClientLauncher {
                 LOGGER.info("Plugin panel " + (visible ? "hidden" : "shown"));
 
 
+                LOGGER.info("Plugin panel " + (visible ? "hidden" : "shown"));
+
+
+
                 frame.revalidate();
                 frame.repaint();
             }
         });
+
 
 
 
@@ -177,6 +186,7 @@ public class ClientLauncher {
         bottom.add(toggleBtn, BorderLayout.WEST);
         bottom.add(logScroll, BorderLayout.CENTER);
         content.add(bottom, BorderLayout.SOUTH);
+
 
         Container content = frame.getContentPane();
         content.setLayout(new BorderLayout());
@@ -201,6 +211,24 @@ public class ClientLauncher {
         new Thread(new Runnable() {
             @Override
             public void run() {
+                try {
+                    ProcessBuilder pb;
+                    if (System.getProperty("os.name").toLowerCase().contains("win")) {
+                        pb = new ProcessBuilder(new File(BASE_DIR, "PokeMMO.exe").getAbsolutePath());
+                    } else {
+                        pb = new ProcessBuilder("./PokeMMO.sh");
+                    }
+                    pb.directory(BASE_DIR);
+                    Process proc = pb.start();
+                    long pid = proc.pid();
+                    LOGGER.info("Started PokeMMO with pid " + pid);
+                    PidEmbedder.reparent(pid, hostFrame);
+                    proc.waitFor();
+                } catch (Exception e) {
+                    LOGGER.log(Level.SEVERE, "Failed to launch PokeMMO", e);
+                }
+            }
+        }).start();
                 try (URLClassLoader cl = new URLClassLoader(new URL[]{
                         new File(BASE_DIR, "PokeMMO.exe").toURI().toURL()
                 })) {
@@ -380,6 +408,7 @@ public class ClientLauncher {
             }
         });
         timer.start();
+
     }
 
     public static void main(String[] args) {
@@ -420,6 +449,7 @@ public class ClientLauncher {
         @Override
         public void close() {
         }
+
 
 
                 final JFrame frame = new JFrame("PokeMMO Launcher");
@@ -504,5 +534,6 @@ public class ClientLauncher {
             frame.setVisible(true);
 
         });
+
     }
 }

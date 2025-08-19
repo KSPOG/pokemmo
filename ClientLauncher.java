@@ -4,11 +4,13 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
+
 import java.io.IOException;
 import java.util.Arrays;
 
 public class ClientLauncher {
     private static final File BASE_DIR = new File(System.getProperty("user.dir"));
+
 
     private static String resolveJavaCmd() {
         File bundled = new File(BASE_DIR, "jre/bin/java");
@@ -36,6 +38,8 @@ public class ClientLauncher {
     }
 
     private static void attachPlugins(JFrame gameFrame) {
+        final JPanel pluginPanel = buildPluginPanel();
+        final JButton toggleBtn = new JButton("Hide Plugins");
         JPanel pluginPanel = buildPluginPanel();
         JButton toggleBtn = new JButton("Hide Plugins");
         toggleBtn.addActionListener(new java.awt.event.ActionListener() {

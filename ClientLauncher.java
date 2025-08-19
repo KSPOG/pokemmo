@@ -33,6 +33,11 @@ public class ClientLauncher {
 
     static {
         try {
+            System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tT %4$s: %5$s%6$s%n");
+            Logger rootLogger = Logger.getLogger("");
+            for (Handler h : rootLogger.getHandlers()) {
+                h.setFormatter(new SimpleFormatter());
+            }
             FileHandler handler = new FileHandler(new File(BASE_DIR, "launcher.log").getAbsolutePath(), true);
             handler.setFormatter(new SimpleFormatter());
             LOGGER.addHandler(handler);
@@ -154,9 +159,11 @@ public class ClientLauncher {
                             }
                             PidEmbedder.reparent(CLIENT_WINDOW_TITLE, hostFrame);
 
+
                             PidEmbedder.reparent("PokeMMO", hostFrame);
 
                             PidEmbedder.reparent(pid, hostFrame);
+
 
 
                         }

@@ -52,7 +52,10 @@ public final class PidEmbedder {
             }
 
             new ProcessBuilder("xdotool", "windowreparent", childId.trim(), hostId.trim()).start().waitFor();
-            LOGGER.info("Reparented game window " + childId.trim() + " into launcher");
+            // Ensure the window becomes visible immediately after reparenting.
+            new ProcessBuilder("xdotool", "windowmap", childId.trim()).start().waitFor();
+            new ProcessBuilder("xdotool", "windowraise", childId.trim()).start().waitFor();
+            LOGGER.info("Reparented game window " + childId.trim() + " into launcher and mapped");
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Failed to embed window via pid", e);
         }

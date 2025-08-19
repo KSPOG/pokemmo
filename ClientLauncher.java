@@ -146,6 +146,10 @@ public class ClientLauncher {
                     Process proc = pb.start();
                     LOGGER.info("Started PokeMMO with pid " + proc.pid());
 
+                    long pid = proc.pid();
+                    LOGGER.info("Started PokeMMO with pid " + pid);
+
+
                     // Attempt to embed the client window without blocking its startup.
                     // Running the embedder asynchronously prevents the launcher from
                     // hanging until it is closed before the game becomes visible.
@@ -156,8 +160,18 @@ public class ClientLauncher {
                                 Thread.sleep(2000);
                             } catch (InterruptedException ignored) {
                             }
+                          
                             // Embed the client by its window title rather than PID
                             PidEmbedder.reparent(CLIENT_WINDOW_TITLE, hostFrame);
+                            PidEmbedder.reparent(CLIENT_WINDOW_TITLE, hostFrame);
+
+
+                            PidEmbedder.reparent("PokeMMO", hostFrame);
+
+                            PidEmbedder.reparent(pid, hostFrame);
+
+
+
                         }
                     }).start();
 

@@ -1,3 +1,5 @@
+package pokemmo;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
@@ -54,6 +56,31 @@ public class Client {
             return;
         }
         ClassLoader loader = injectionLoader;
+        if (loader == null) {
+            try {
+                loader = new URLClassLoader(new URL[]{dir.toUri().toURL()});
+            } catch (IOException e) {
+                logger.log(Level.WARNING, "Failed to create plugin class loader", e);
+                return;
+            }
+        }
+        final ClassLoader pluginLoader = loader;
+        try (Stream<Path> stream = Files.walk(dir)) {
+            stream.filter(p -> p.toString().endsWith(".class")).forEach(entry -> {
+                String className = dir.relativize(entry).toString()
+                        .replace(File.separatorChar, '.')
+                        .replaceFirst("\\.class$", "");
+                try {
+                    Class<?> cls = Class.forName(className, true, pluginLoader);
+                    if (ClientPlugin.class.isAssignableFrom(cls)) {
+                        ClientPlugin plugin = (ClientPlugin) cls.getDeclaredConstructor().newInstance();
+                        plugins.add(plugin);
+                        logger.info("Loaded plugin " + className);
+                    }
+                } catch (Exception e) {
+                    logger.log(Level.WARNING, "Failed to load plugin " + className, e);
+                }
+            });
         try {
             if (loader == null) {
                 loader = new URLClassLoader(new URL[]{dir.toUri().toURL()});

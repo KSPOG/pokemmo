@@ -32,6 +32,11 @@ public class ClientLauncher {
 
     static {
         try {
+            System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tT %4$s: %5$s%6$s%n");
+            Logger rootLogger = Logger.getLogger("");
+            for (Handler h : rootLogger.getHandlers()) {
+                h.setFormatter(new SimpleFormatter());
+            }
             FileHandler handler = new FileHandler(new File(BASE_DIR, "launcher.log").getAbsolutePath(), true);
             handler.setFormatter(new SimpleFormatter());
             LOGGER.addHandler(handler);
@@ -138,9 +143,25 @@ public class ClientLauncher {
                     }
                     pb.directory(BASE_DIR);
                     Process proc = pb.start();
-                    long pid = proc.pid();
-                    LOGGER.info("Started PokeMMO with pid " + pid);
-                    PidEmbedder.reparent(pid, hostFrame);
+                    // Log the process ID explicitly as a string to avoid any type ambiguity.
+                    LOGGER.info("Started PokeMMO with pid " + String.valueOf(proc.pid()));
+                    final long pid = proc.pid();
+
+                    // Attempt to embed the client window without blocking its startup.
+                    // Running the embedder asynchronously prevents the launcher from
+                    // hanging until it is closed before the game becomes visible.
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                Thread.sleep(2000);
+                            } catch (InterruptedException ignored) {
+                            }
+                            // Embed the client by its process id
+                            PidEmbedder.reparent(pid, hostFrame);
+                        }
+                    }).start();
+
                     proc.waitFor();
                 } catch (Exception e) {
                     LOGGER.log(Level.SEVERE, "Failed to launch PokeMMO", e);

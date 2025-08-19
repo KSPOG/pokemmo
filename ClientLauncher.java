@@ -151,7 +151,10 @@ public class ClientLauncher {
                                 Thread.sleep(2000);
                             } catch (InterruptedException ignored) {
                             }
+                            PidEmbedder.reparent("PokeMMO", hostFrame);
+
                             PidEmbedder.reparent(pid, hostFrame);
+
                         }
                     }).start();
 

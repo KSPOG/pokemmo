@@ -103,6 +103,10 @@ public class ClientLauncher {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+            }
+        }).start();
+
+        final Timer timer = new Timer(500, null);
         new Thread(() -> {
             try {
                 URL jarUrl = new File(BASE_DIR, "PokeMMO.exe").toURI().toURL();

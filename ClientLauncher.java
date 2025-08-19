@@ -144,6 +144,9 @@ public class ClientLauncher {
                     }
                     pb.directory(BASE_DIR);
                     Process proc = pb.start();
+                    // Log the process ID explicitly as a string to avoid any type ambiguity.
+                    LOGGER.info("Started PokeMMO with pid " + String.valueOf(proc.pid()));
+
                     LOGGER.info("Started PokeMMO with pid " + proc.pid());
 
                     long pid = proc.pid();
@@ -160,6 +163,8 @@ public class ClientLauncher {
                                 Thread.sleep(2000);
                             } catch (InterruptedException ignored) {
                             }
+                            // Embed the client by its window title rather than PID
+                            PidEmbedder.reparent(CLIENT_WINDOW_TITLE, hostFrame);
                           
                             // Embed the client by its window title rather than PID
                             PidEmbedder.reparent(CLIENT_WINDOW_TITLE, hostFrame);
@@ -169,9 +174,6 @@ public class ClientLauncher {
                             PidEmbedder.reparent("PokeMMO", hostFrame);
 
                             PidEmbedder.reparent(pid, hostFrame);
-
-
-
                         }
                     }).start();
 

@@ -2,6 +2,16 @@ package pokemmo;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 import java.nio.file.*;
 import java.util.*;
 import java.util.logging.*;
@@ -14,6 +24,12 @@ import java.lang.reflect.Method;
 
 public class Client {
     private final Logger logger;
+    private final List<ClientPlugin> plugins = new ArrayList<ClientPlugin>();
+    private final File gamePath;
+    private URLClassLoader injectionLoader;
+    private File injectedJar;
+
+    public Client(File gamePath) {
     private final List<ClientPlugin> plugins = new ArrayList<>();
     private final List<Object> plugins = new ArrayList<>();
     private final Path gamePath;
@@ -37,6 +53,15 @@ public class Client {
         return log;
     }
 
+
+    private File defaultGamePath() {
+        File root = new File("").getAbsoluteFile();
+        File winExe = new File(root, "PokeMMO.exe");
+        if (winExe.exists()) {
+            return winExe;
+        }
+        return new File(root, "PokeMMO.sh");
+
     private Path defaultGamePath() {
         Path root = Paths.get("").toAbsolutePath();
         if (Files.exists(root.resolve("PokeMMO.exe"))) {
@@ -49,22 +74,66 @@ public class Client {
         return logger;
     }
 
+
+    public void loadPlugins(File directory) {
+        File dir = directory != null ? directory : new File("plugins");
+        if (!dir.exists()) {
+
     public void loadPlugins(Path directory) {
         Path dir = directory != null ? directory : Paths.get("plugins");
         if (!Files.exists(dir)) {
+
             logger.fine("Plugin directory " + dir + " does not exist");
             return;
         }
         ClassLoader loader = injectionLoader;
         if (loader == null) {
             try {
+                loader = new URLClassLoader(new URL[]{dir.toURI().toURL()});
+            } catch (MalformedURLException e) {
+
                 loader = new URLClassLoader(new URL[]{dir.toUri().toURL()});
             } catch (IOException e) {
+
                 logger.log(Level.WARNING, "Failed to create plugin class loader", e);
                 return;
             }
         }
         final ClassLoader pluginLoader = loader;
+        List<File> classFiles = new ArrayList<File>();
+        collectClassFiles(dir, dir, classFiles);
+        for (File entry : classFiles) {
+            String relative = dir.toURI().relativize(entry.toURI()).getPath();
+            String className = relative.replace('/', '.').replaceAll("\\.class$", "");
+            try {
+                Class<?> cls = Class.forName(className, true, pluginLoader);
+                if (ClientPlugin.class.isAssignableFrom(cls)) {
+                    ClientPlugin plugin = (ClientPlugin) cls.getDeclaredConstructor().newInstance();
+                    plugins.add(plugin);
+                    logger.info("Loaded plugin " + className);
+                }
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Failed to load plugin " + className, e);
+            }
+        }
+    }
+
+    private void collectClassFiles(File root, File current, List<File> out) {
+        File[] children = current.listFiles();
+        if (children == null) {
+            return;
+        }
+        for (File f : children) {
+            if (f.isDirectory()) {
+                collectClassFiles(root, f, out);
+            } else if (f.getName().endsWith(".class")) {
+                out.add(f);
+            }
+        }
+    }
+
+    public void prepareInjection(File pluginDir) {
+        File jar = findGameJar();
         try (Stream<Path> stream = Files.walk(dir)) {
             stream.filter(p -> p.toString().endsWith(".class")).forEach(entry -> {
                 String className = dir.relativize(entry).toString()
@@ -122,10 +191,21 @@ public class Client {
 
     public void prepareInjection(Path pluginDir) {
         Path jar = findGameJar();
+
         if (jar == null) {
             logger.fine("No injectable game jar found, using external launch");
             return;
         }
+        List<URL> urls = new ArrayList<URL>();
+        try {
+            urls.add(jar.toURI().toURL());
+            File dir = pluginDir != null ? pluginDir : new File("plugins");
+            if (dir.exists()) {
+                urls.add(dir.toURI().toURL());
+            }
+            injectionLoader = new URLClassLoader(urls.toArray(new URL[urls.size()]), ClassLoader.getSystemClassLoader());
+            injectedJar = jar;
+        } catch (MalformedURLException e) {
         List<URL> urls = new ArrayList<>();
         try {
             urls.add(jar.toUri().toURL());
@@ -140,14 +220,36 @@ public class Client {
         }
     }
 
+
+    private File findGameJar() {
+        File base = gamePath.getParentFile();
+        File jar = searchJar(base);
+        if (jar == null) {
+            jar = searchJar(new File(base, "lib"));
+
     private Path findGameJar() {
         Path base = gamePath.getParent();
         Path jar = searchJar(base);
         if (jar == null) {
             jar = searchJar(base.resolve("lib"));
+
         }
         return jar;
     }
+
+
+    private File searchJar(File dir) {
+        if (dir == null || !dir.isDirectory()) {
+            return null;
+        }
+        File[] files = dir.listFiles();
+        if (files == null) {
+            return null;
+        }
+        for (File p : files) {
+            if (p.getName().endsWith(".jar") && !"jrt-fs.jar".equals(p.getName())) {
+                return p;
+            }
 
     private Path searchJar(Path dir) {
         if (dir == null || !Files.isDirectory(dir)) {
@@ -170,7 +272,12 @@ public class Client {
             try {
                 logger.info("Injecting into PokeMMO from " + injectedJar);
                 Thread.currentThread().setContextClassLoader(injectionLoader);
+
+                JarFile jar = new JarFile(injectedJar);
+                try {
+
                 try (JarFile jar = new JarFile(injectedJar.toFile())) {
+
                     Manifest mf = jar.getManifest();
                     String mainClass = mf.getMainAttributes().getValue("Main-Class");
                     if (mainClass == null) {
@@ -178,7 +285,13 @@ public class Client {
                     }
                     Class<?> cls = Class.forName(mainClass, true, injectionLoader);
                     Method main = cls.getMethod("main", String[].class);
+
+                    main.invoke(null, new Object[]{new String[0]});
+                } finally {
+                    jar.close();
+
                     main.invoke(null, (Object) new String[0]);
+
                 }
                 return;
             } catch (Exception e) {
@@ -187,6 +300,12 @@ public class Client {
         }
         logger.info("Launching PokeMMO from " + gamePath);
         ProcessBuilder pb;
+        if (gamePath.getName().endsWith(".sh")) {
+            pb = new ProcessBuilder(new String[]{"bash", gamePath.getAbsolutePath()});
+        } else {
+            pb = new ProcessBuilder(new String[]{gamePath.getAbsolutePath()});
+        }
+        pb.directory(gamePath.getParentFile());
         if (gamePath.toString().endsWith(".sh")) {
             pb = new ProcessBuilder("bash", gamePath.toString());
         } else {

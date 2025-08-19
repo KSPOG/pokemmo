@@ -1,7 +1,9 @@
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
 import java.util.logging.*;
+import java.util.stream.*;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.jar.JarFile;
@@ -10,6 +12,7 @@ import java.lang.reflect.Method;
 
 public class Client {
     private final Logger logger;
+    private final List<ClientPlugin> plugins = new ArrayList<>();
     private final List<Object> plugins = new ArrayList<>();
     private final Path gamePath;
     private URLClassLoader injectionLoader;
@@ -55,6 +58,23 @@ public class Client {
             if (loader == null) {
                 loader = new URLClassLoader(new URL[]{dir.toUri().toURL()});
             }
+            final ClassLoader pluginLoader = loader;
+            try (Stream<Path> stream = Files.walk(dir)) {
+                stream.filter(p -> p.toString().endsWith(".class")).forEach(entry -> {
+                    String className = dir.relativize(entry).toString()
+                            .replace(File.separatorChar, '.')
+                            .replaceFirst("\\.class$", "");
+                    try {
+                        Class<?> cls = Class.forName(className, true, pluginLoader);
+                        if (ClientPlugin.class.isAssignableFrom(cls)) {
+                            ClientPlugin plugin = (ClientPlugin) cls.getDeclaredConstructor().newInstance();
+                            plugins.add(plugin);
+                            logger.info("Loaded plugin " + className);
+                        }
+                    } catch (Exception e) {
+                        logger.log(Level.WARNING, "Failed to load plugin " + className, e);
+                    }
+                });
             try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, "*.class")) {
                 for (Path entry : stream) {
                     String className = entry.getFileName().toString().replaceFirst("\\.class$", "");
@@ -153,6 +173,9 @@ public class Client {
         Client client = new Client(null);
         client.prepareInjection(null);
         client.loadPlugins(null);
+        for (ClientPlugin plugin : client.plugins) {
+            try {
+                plugin.run(client);
         for (Object plugin : client.plugins) {
             try {
                 plugin.getClass().getMethod("run", Client.class).invoke(plugin, client);
